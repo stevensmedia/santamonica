@@ -1,0 +1,24 @@
+{
+  "name": "us.hakubi.santamonica",
+  "displayName": "Santa Monica",
+  "version": "1.0.0",
+  "description": "A music player.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx mocha"
+  },
+  "keywords": [
+    "ecosystem:cordova"
+  ],
+  "author": "Neil Stevens",
+  "license": "MIT",
+  "devDependencies": {
+    "cordova-electron": "^3.1.0",
+    "mocha": "^10.2.0"
+  },
+  "cordova": {
+    "platforms": [
+      "electron"
+    ]
+  }
+}

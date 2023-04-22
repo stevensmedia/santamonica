@@ -5,7 +5,8 @@
   "description": "A music player.",
   "main": "index.js",
   "scripts": {
-    "test": "npx mocha"
+    "test": "npx mocha",
+    "start": "cordova run electron --release"
   },
   "keywords": [
     "ecosystem:cordova"

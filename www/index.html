@@ -25,11 +25,25 @@
 			<fluent-select shuffle>
 				<fluent-option random><span class="fa fa-random"></span></fluent-option>
 			</fluent-select>
-			<fluent-divider></fluent-divider>
-			<fluent-button settings><span class="fa fa-gear"></span></fluent-button>
 		</fluent-toolbar>
-		<div id="content">
-		</div>
+		<fluent-tabs id="content">
+			<fluent-tab id="playlists">Playlists</fluent-tab>
+			<fluent-tab-panel id="playlistsPanel">
+				<h1>Playlists</h1>
+			</fluent-tab-panel>
+			<fluent-tab id="albums">Albums</fluent-tab>
+			<fluent-tab-panel id="albumsPanel">
+				<h1>Albums</h1>
+			</fluent-tab-panel>
+			<fluent-tab id="songs">Songs</fluent-tab>
+			<fluent-tab-panel id="songsPanel">
+				<h1>Albums</h1>
+			</fluent-tab-panel>
+			<fluent-tab id="settings">Settings</fluent-tab>
+			<fluent-tab-panel id="settingsPanel">
+				<h1>Settings</h1>
+			</fluent-tab-panel>
+		</fluent-tabs>
 		<div id="footer">
 		</div>
 	</body>

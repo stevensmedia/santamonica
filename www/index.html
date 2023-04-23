@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
+		<meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+		<link rel="stylesheet" type="text/less" href="css/index.less">
+		<link rel="stylesheet" type="text/css" href="css/fork-awesome.min.css">
+		<script type="module" src="js/web-components.min.js"></script>
+		<script src="js/less.min.js"></script>
+		<script src="js/index.js"></script>
+		<title>Santa Monica</title>
+	</head>
+	<body>
+		<fluent-toolbar>
+			<fluent-button play><span class="fa fa-play"></span></fluent-button>
+			<fluent-button pause><span class="fa fa-pause"></span></fluent-button>
+			<fluent-button stop><span class="fa fa-stop"></span></fluent-button>
+			<fluent-button next><span class="fa fa-fast-forward"></span></fluent-button>
+			<fluent-button previous><span class="fa fa-fast-backward"></span></fluent-button>
+			<fluent-divider></fluent-divider>
+			<fluent-select shuffle>
+				<fluent-option random><span class="fa fa-random"></span></fluent-option>
+			</fluent-select>
+		</fluent-toolbar>
+		<fluent-tabs id="content">
+			<fluent-tab id="playlists">Playlists</fluent-tab>
+			<fluent-tab-panel id="playlistsPanel">
+				<h1>Playlists</h1>
+			</fluent-tab-panel>
+			<fluent-tab id="albums">Albums</fluent-tab>
+			<fluent-tab-panel id="albumsPanel">
+				<h1>Albums</h1>
+			</fluent-tab-panel>
+			<fluent-tab id="songs">Songs</fluent-tab>
+			<fluent-tab-panel id="songsPanel">
+				<h1>Albums</h1>
+			</fluent-tab-panel>
+			<fluent-tab id="settings">Settings</fluent-tab>
+			<fluent-tab-panel id="settingsPanel">
+				<h1>Settings</h1>
+				<div class="settings-row">
+					<span>Music Path</span>
+					<fluent-text-field id="music-path"></fluent-text-field>
+					<fluent-button scan>Scan</fluent-button>
+				</div>
+			</fluent-tab-panel>
+		</fluent-tabs>
+		<div id="footer">
+		</div>
+	</body>
+</html>

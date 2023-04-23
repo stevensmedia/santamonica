@@ -1,0 +1,16 @@
+{
+  "name": "santamonica",
+  "version": "1.0.0",
+  "description": "Music player",
+  "main": "main.js",
+  "scripts": {
+    "test": "npx mocha",
+    "start": "npx electon ."
+  },
+  "author": "Neil Stevens",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^24.1.2",
+    "mocha": "^10.2.0"
+  }
+}

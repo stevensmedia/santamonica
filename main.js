@@ -5,6 +5,8 @@ const process = require('process')
 function createWindow() {
 	const opts = {
 		autoHideMenuBar: true,
+		width: 540,
+		height: 960,
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.js')
 		}
@@ -45,7 +47,8 @@ async function main() {
 		}
 	})
 
-
+	electron.ipcMain.handle('scanPath', async (path) => {
+	})
 }
 
 main()

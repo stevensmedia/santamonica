@@ -2,14 +2,24 @@ async function main() {
 	const q = (a) => document.querySelector(a)
 	const qa = (a) => document.querySelectorAll(a)
 
-	q("fluent-button[scan]").addEventListener("click", () => {
+	const scan = () -> {
 		const target = q("#music-path")
-		const path = target.value
-	})
+		const path = target.value.trim()
+		if(!path) {
+			console.log("[scan] No path; aborting")
+			return
+		}
+	}
+
+	q("fluent-button[scan]").addEventListener("click", scan)
 
 	q("fluent-button[choose-music-path]").addEventListener("click", async () => {
 		const dir = await SantaMonica.chooseDirectory()
 		console.log("Chose directory", dir)
+		if(dir) {
+			q("#music-path").value = dir
+			scan()
+		}
 	})
 
 }

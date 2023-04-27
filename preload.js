@@ -6,5 +6,8 @@ electron.contextBridge.exposeInMainWorld('SantaMonica', {
 	},
 	scanPath: (path) => {
 		return electron.ipcRenderer.invoke('scanPath')
+	},
+	quit: () => {
+		return electron.ipcRenderer.invoke('quit')
 	}
 })

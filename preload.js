@@ -5,7 +5,7 @@ electron.contextBridge.exposeInMainWorld('SantaMonica', {
 		return electron.ipcRenderer.invoke('chooseDirectory')
 	},
 	scanPath: (path) => {
-		return electron.ipcRenderer.invoke('scanPath')
+		return electron.ipcRenderer.invoke('scanPath', path)
 	},
 	quit: () => {
 		return electron.ipcRenderer.invoke('quit')

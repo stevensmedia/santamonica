@@ -1,4 +1,6 @@
 const electron = require('electron')
+const fs = require('fs/promises')
+const m3u8Parser = require('m3u8-parser')
 const path = require('path')
 const process = require('process')
 
@@ -47,7 +49,53 @@ async function main() {
 		}
 	})
 
-	electron.ipcMain.handle('scanPath', async (path) => {
+	electron.ipcMain.handle('scanPath', async (ev, target) => {
+		var ret = {
+			playlists: [],
+			files: []
+		}
+
+		var read
+
+		read = async (t) => {
+			try {
+				const targetData = await fs.readdir(t)
+				for(const f of targetData) {
+					const file = path.join(t, f)
+					const stats = await fs.stat(file)
+					if(stats.isDirectory()) {
+						console.log("Directory", file)
+						await read(file)
+					} else {
+						if(file.match(/\.m3u8?$/)) {
+							ret.playlists.push({ file })
+						} else {
+							ret.files.push({ file })
+						}
+					}
+				}
+			} catch(e) {
+				console.error("Error reading path", target, e)
+			}
+		}
+
+		await read(target)
+
+		for(const playlist of ret.playlists) {
+			try {
+				const data = await fs.readFile(playlist.file)
+				parser = new m3u8Parser.Parser()
+				parser.push(data.toString("UTF-8"))
+				parser.end()
+
+				playlist.manifest = parser.manifest
+				console.log(`Playlist ${playlist.file} of length ${playlist.manifest.segments.length}`)
+			} catch(e) {
+				console.error("Error reading playlist", target, e)
+			}
+		}
+
+		return ret
 	})
 }
 

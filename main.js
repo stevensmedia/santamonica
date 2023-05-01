@@ -84,14 +84,27 @@ async function main() {
 		for(const playlist of ret.playlists) {
 			try {
 				const data = await fs.readFile(playlist.file)
-				parser = new m3u8Parser.Parser()
+				const parser = new m3u8Parser.Parser()
 				parser.push(data.toString("UTF-8"))
 				parser.end()
 
 				playlist.manifest = parser.manifest
 				console.log(`Playlist ${playlist.file} of length ${playlist.manifest.segments.length}`)
 			} catch(e) {
-				console.error("Error reading playlist", target, e)
+				console.error("Error reading playlist", playlist.file, e)
+				ret.playlists = ret.playlists.filter((x) => x.file != playlist.file)
+			}
+		}
+
+		const musicMetadata = await import('music-metadata')
+		for(const track of ret.files) {
+			try {
+				const data = await musicMetadata.parseFile(track.file)
+				track.data = data.common
+				console.log(track.data.album, track.data.track.no, track.data.title)
+			} catch(e) {
+				console.error("Error reading track", track.file, e)
+				ret.files = ret.files.filter((x) => x.file != track.file)
 			}
 		}
 

@@ -13,6 +13,9 @@
     "electron": "^24.1.2",
     "m3u8-parser": "^6.0.0",
     "mocha": "^10.2.0",
-    "music-metadata": "^8.1.4"
+    "music-metadata": "^8.1.4",
+    "pouchdb": "^8.0.1",
+    "pouchdb-find": "^8.0.1",
+    "pouchdb-utils": "^8.0.1"
   }
 }

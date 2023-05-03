@@ -2,27 +2,86 @@ const electron = require('electron')
 const fs = require('fs/promises')
 const m3u8Parser = require('m3u8-parser')
 const path = require('path')
+const pouchdb = require('pouchdb')
+const pouchdbfind = require('pouchdb-find')
+const pouchdbutils = require('pouchdb-utils')
 const process = require('process')
-
-function createWindow() {
-	const opts = {
-		autoHideMenuBar: true,
-		width: 540,
-		height: 960,
-		webPreferences: {
-			preload: path.join(__dirname, 'preload.js')
-		}
-	}
-
-	const win = new electron.BrowserWindow(opts)
-
-	win.loadFile("www/index.html")
-}
 
 async function main() {
 	await electron.app.whenReady()
+	
+	pouchdb.plugin(pouchdbfind)
 
-	createWindow()
+	const settingsPath = path.join(electron.app.getPath('userData'), 'settings')
+	console.log("[main] settingsPath", settingsPath)
+	const settings = new pouchdb(settingsPath)
+
+	const createWindow = async () => {
+		var opts = {}
+		try {
+			const res = await settings.find({
+				selector: { domain: 'app', setting: 'window' }
+			})
+			opts = res.docs[0].opts
+		} catch(e) {
+			// Don't care
+		}
+
+		const def = (name, value) => {
+			if(!opts.hasOwnProperty(name)) {
+				opts[name] = value
+			}
+		}
+
+		def('width', 540)
+		def('height', 960)
+
+		opts.autoHideMenuBar = true
+		opts.webPreferences = {
+			preload: path.join(__dirname, 'preload.js')
+		}
+
+		const win = new electron.BrowserWindow(opts)
+
+		win.loadFile("www/index.html")
+
+		const saveDimensions = async (e) => {
+			const [ x, y ] = win.getPosition()
+			const [ w, h ] = win.getSize()
+
+			const doc = await (async () => {
+				var u = false
+				try {
+					const res = await settings.find({
+						selector: { domain: 'app', setting: 'window' }
+					})
+					u = res.docs[0]
+				} catch(e) {
+				}
+				if(!u) {
+					u = {
+						_id: pouchdbutils.uuid()
+					}
+				}
+				return u
+			})()
+
+			doc.domain = 'app'
+			doc.setting = 'window'
+			doc.opts = {
+				x,
+				y,
+				w,
+				h
+			}
+
+			await settings.put(doc)
+		}
+		win.on('resized', saveDimensions)
+		win.on('moved', saveDimensions)
+	}
+
+	await createWindow()
 
 	electron.app.on('activate', function() {
 		if(!electron.BrowserWindow.getAllWindows().length) {
@@ -34,6 +93,11 @@ async function main() {
 		if(process.platform != 'darwin') {
 			electron.app.quit()
 		}
+	})
+
+	electron.app.on('will-quit', async () => {
+		await settings.compact()
+		await settings.close()
 	})
 
 	electron.ipcMain.handle('chooseDirectory', async (event) => {

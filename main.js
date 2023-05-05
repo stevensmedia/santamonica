@@ -128,7 +128,6 @@ async function main() {
 					const file = path.join(t, f)
 					const stats = await fs.stat(file)
 					if(stats.isDirectory()) {
-						console.log("Directory", file)
 						await read(file)
 					} else {
 						if(file.match(/\.m3u8?$/)) {
@@ -153,7 +152,6 @@ async function main() {
 				parser.end()
 
 				playlist.manifest = parser.manifest
-				console.log(`Playlist ${playlist.file} of length ${playlist.manifest.segments.length}`)
 			} catch(e) {
 				console.error("Error reading playlist", playlist.file, e)
 				ret.playlists = ret.playlists.filter((x) => x.file != playlist.file)
@@ -165,7 +163,6 @@ async function main() {
 			try {
 				const data = await musicMetadata.parseFile(track.file)
 				track.data = data.common
-				console.log(track.data.album, track.data.track.no, track.data.title)
 			} catch(e) {
 				console.error("Error reading track", track.file, e)
 				ret.files = ret.files.filter((x) => x.file != track.file)

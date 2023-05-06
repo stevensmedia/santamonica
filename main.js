@@ -156,6 +156,7 @@ async function main() {
 				console.error("Error reading playlist", playlist.file, e)
 				ret.playlists = ret.playlists.filter((x) => x.file != playlist.file)
 			}
+			playlist.file = path.relative(target, playlist.file)
 		}
 
 		const musicMetadata = await import('music-metadata')
@@ -167,6 +168,7 @@ async function main() {
 				console.error("Error reading track", track.file, e)
 				ret.files = ret.files.filter((x) => x.file != track.file)
 			}
+			track.file = path.relative(target, track.file)
 		}
 
 		return ret

@@ -10,7 +10,22 @@ async function main() {
 			return
 		}
 		const results = await SantaMonica.scanPath(path)
-		console.log(results)
+		const songData = results.files.map(file => {
+			return {
+				title: file.data.title,
+				album: file.data.album,
+				track: file.data.track.no,
+				filename: file.file
+			}
+		})
+		q('#songsGrid').rowsData = songData
+
+		const playlistData = results.playlists.map(file => {
+			return {
+				filename: file.file
+			}
+		})
+		q('#playlistsGrid').rowsData = playlistData
 	}
 
 	q("fluent-button[scan]").addEventListener("click", scan)

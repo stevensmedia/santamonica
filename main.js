@@ -2,48 +2,65 @@ const electron = require('electron')
 const fs = require('fs/promises')
 const m3u8Parser = require('m3u8-parser')
 const path = require('path')
-const pouchdb = require('pouchdb')
-const pouchdbfind = require('pouchdb-find')
-const pouchdbutils = require('pouchdb-utils')
 const process = require('process')
+
+const Settings = function() {
+	const ths = {
+		data: [],
+		get: async function(domain, setting, def = {}) {
+			var u = await this.data.find((e) => {
+				const res = e.domain == domain && e.setting == setting
+				return res
+			})
+			if(!u) {
+				u = {
+					domain,
+					setting
+				}
+				u = { ...def, ...u }
+				this.data.push(u)
+			}
+			return u
+		},
+		put: async function(domain, setting, data) {
+			const doc = await this.get(domain, setting, {})
+			const overlay = {
+				domain,
+				setting
+			}
+			this.data = this.data.filter(e => (e.domain != domain || e.setting != setting))
+			const newdoc = { ...doc, ...data, ...overlay }
+			this.data.push(newdoc)
+		},
+		load: async function(path) {
+			try {
+				const saved = await fs.readFile(path)
+				this.data = JSON.parse(saved)
+			} catch(e) {
+				console.log("[Settings.load] No settings file found!", e)
+			}
+		},
+		save: async function(path) {
+			try {
+				await fs.writeFile(path, JSON.stringify(this.data))
+			} catch(e) {
+				console.log("[Settings.save] Could not write settings", e)
+			}
+		}
+	}
+	return ths
+}
 
 async function main() {
 	await electron.app.whenReady()
 	
-	pouchdb.plugin(pouchdbfind)
-
-	const settingsPath = path.join(electron.app.getPath('userData'), 'settings')
-	console.log("[main] settingsPath", settingsPath)
-	const settings = new pouchdb(settingsPath)
-
-	const getSetting = async (domain, setting, def = {}) => {
-		var u = false
-		try {
-			const res = await settings.find({
-				selector: { domain, setting }
-			})
-			u = res.docs[0]
-		} catch(e) {
-		}
-		if(!u) {
-			console.log(`[getSetting] setting ${domain}:${setting} not found`)
-			u = {
-				_id: pouchdbutils.uuid()
-			}
-		}
-		console.log('[getSetting]', domain, setting, u)
-		return { ...u, ...def }
-	}
-
-	const putSetting = async (domain, setting, data) => {
-		const doc = await getSetting(domain, setting, {})
-		const ret = { ...doc, ...data }
-		console.log('[putSetting]', domain, setting, ret)
-		await settings.put(ret)
-	}
+	const settingsPath = path.join(electron.app.getPath('userData'), 'settings.json')
+	const settings = Settings()
+	console.log("[main] Loading settings from", settingsPath)
+	await settings.load(settingsPath)
 
 	const createWindow = async () => {
-		const res = await getSetting('app', 'window', {
+		const res = await settings.get('app', 'window', {
 			width: 540,
 			height: 960
 		})
@@ -53,14 +70,7 @@ async function main() {
 				preload: path.join(__dirname, 'preload.js')
 			}
 		}
-		const opts = { ...res, ...overlay}
-		console.log("[createWindow] opts", opts)
-		const win = new electron.BrowserWindow(opts)
-
-		win.loadFile("www/index.html")
-
 		const saveDimensions = async (e) => {
-			console.log("[saveDimensions] e", e)
 			const [ x, y ] = win.getPosition()
 			const [ width, height ] = win.getSize()
 
@@ -71,8 +81,14 @@ async function main() {
 				height
 			}
 
-			await putSetting('app', 'window', data)
+			await settings.put('app', 'window', data)
 		}
+		const opts = { ...res, ...overlay}
+		const win = new electron.BrowserWindow(opts)
+		saveDimensions({})
+
+		win.loadFile("www/index.html")
+
 		win.on('resized', saveDimensions)
 		win.on('moved', saveDimensions)
 	}
@@ -92,14 +108,9 @@ async function main() {
 	})
 
 	electron.app.on('before-quit', async () => {
-		console.log("[before-quit] Compacting and closing database")
-		try {
-			await settings.compact()
-			await settings.close()
-			console.log("[before-quit] Closed database")
-		} catch(e) {
-			console.log("[before-quit] Failed to close database", e)
-		}
+		console.log("[before-quit] Saving database")
+		await settings.save(settingsPath)
+		console.log("[before-quit] Database saved")
 	})
 
 	electron.ipcMain.handle('chooseDirectory', async (event) => {

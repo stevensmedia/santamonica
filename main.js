@@ -16,66 +16,62 @@ async function main() {
 	console.log("[main] settingsPath", settingsPath)
 	const settings = new pouchdb(settingsPath)
 
-	const createWindow = async () => {
-		var opts = {}
+	const getSetting = async (domain, setting, def = {}) => {
+		var u = false
 		try {
 			const res = await settings.find({
-				selector: { domain: 'app', setting: 'window' }
+				selector: { domain, setting }
 			})
-			opts = res.docs[0].opts
+			u = res.docs[0]
 		} catch(e) {
-			// Don't care
 		}
-
-		const def = (name, value) => {
-			if(!opts.hasOwnProperty(name)) {
-				opts[name] = value
+		if(!u) {
+			console.log(`[getSetting] setting ${domain}:${setting} not found`)
+			u = {
+				_id: pouchdbutils.uuid()
 			}
 		}
+		console.log('[getSetting]', domain, setting, u)
+		return { ...u, ...def }
+	}
 
-		def('width', 540)
-		def('height', 960)
+	const putSetting = async (domain, setting, data) => {
+		const doc = await getSetting(domain, setting, {})
+		const ret = { ...doc, ...data }
+		console.log('[putSetting]', domain, setting, ret)
+		await settings.put(ret)
+	}
 
-		opts.autoHideMenuBar = true
-		opts.webPreferences = {
-			preload: path.join(__dirname, 'preload.js')
+	const createWindow = async () => {
+		const res = await getSetting('app', 'window', {
+			width: 540,
+			height: 960
+		})
+		const overlay = {
+			autoHideMenuBar: true,
+			webPreferences: {
+				preload: path.join(__dirname, 'preload.js')
+			}
 		}
-
+		const opts = { ...res, ...overlay}
+		console.log("[createWindow] opts", opts)
 		const win = new electron.BrowserWindow(opts)
 
 		win.loadFile("www/index.html")
 
 		const saveDimensions = async (e) => {
+			console.log("[saveDimensions] e", e)
 			const [ x, y ] = win.getPosition()
-			const [ w, h ] = win.getSize()
+			const [ width, height ] = win.getSize()
 
-			const doc = await (async () => {
-				var u = false
-				try {
-					const res = await settings.find({
-						selector: { domain: 'app', setting: 'window' }
-					})
-					u = res.docs[0]
-				} catch(e) {
-				}
-				if(!u) {
-					u = {
-						_id: pouchdbutils.uuid()
-					}
-				}
-				return u
-			})()
-
-			doc.domain = 'app'
-			doc.setting = 'window'
-			doc.opts = {
+			data = {
 				x,
 				y,
-				w,
-				h
+				width,
+				height
 			}
 
-			await settings.put(doc)
+			await putSetting('app', 'window', data)
 		}
 		win.on('resized', saveDimensions)
 		win.on('moved', saveDimensions)
@@ -95,9 +91,15 @@ async function main() {
 		}
 	})
 
-	electron.app.on('will-quit', async () => {
-		await settings.compact()
-		await settings.close()
+	electron.app.on('before-quit', async () => {
+		console.log("[before-quit] Compacting and closing database")
+		try {
+			await settings.compact()
+			await settings.close()
+			console.log("[before-quit] Closed database")
+		} catch(e) {
+			console.log("[before-quit] Failed to close database", e)
+		}
 	})
 
 	electron.ipcMain.handle('chooseDirectory', async (event) => {
@@ -172,6 +174,23 @@ async function main() {
 		}
 
 		return ret
+	})
+
+	electron.ipcMain.handle('settings.read', async (ev, domain, key) => {
+		console.log("[settings.read], domain, key")
+
+			doc.domain = 'app'
+			doc.setting = 'window'
+			doc.opts = {
+				x,
+				y,
+				w,
+				h
+			}
+
+			await settings.put(doc)
+
+
 	})
 }
 

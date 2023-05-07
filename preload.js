@@ -9,5 +9,13 @@ electron.contextBridge.exposeInMainWorld('SantaMonica', {
 	},
 	quit: () => {
 		return electron.ipcRenderer.invoke('quit')
+	},
+	settings: {
+		read: (domain, key) => {
+			return JSON.parse(electron.ipcRenderer.invoke('settings.read', domain, key))
+		},
+		write: (domain, key, value) => {
+			return electron.ipcRenderer.invoke('settings.write', domain, key, JSON.stringify(value))
+		}
 	}
 })
